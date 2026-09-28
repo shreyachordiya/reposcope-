@@ -14,7 +14,7 @@
   align-items: center;
   gap: 10px;
   flex: 1;
-  max-width: 500px;
+  max-width: 900px;
   background: var(--bg-main);
   border: 1px solid var(--border-color);
   border-radius: 999px;
@@ -85,4 +85,28 @@
 
 .toggle.on .knob {
   left: 18px;
+}
+.analyze-btn {
+  background: #2a2a3d;
+  color: #cfcfe8;
+  border: 1px solid #44445c;
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.analyze-btn:hover {
+  background: #35354a;
+  color: white;
+}
+
+.analyze-btn:hover {
+  background: #6a4be0;
+}
+.search-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
