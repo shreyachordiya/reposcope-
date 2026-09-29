@@ -11,6 +11,8 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@babel/parser": "^8.0.6",
+    "@babel/traverse": "^8.0.6",
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "simple-git": "^4.0.2"

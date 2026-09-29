@@ -1,11 +1,10 @@
 .overview-result {
-  background: #1c1c28;
-  border: 1px solid #2e2e42;
-  border-radius: 12px;
-  padding: 24px 28px;
-  max-width: 480px;
-  margin: 40px auto;
-}
+  position: absolute;
+  inset: 0;                      /* exactly the size of the pane */
+  overflow-y: auto;
+  box-sizing: border-box;
+  /* keeps the same centered column width as now, with breathing room at the bottom */
+  padding: 24px max(24px, calc((100% - 1000px) / 2)) 48px;}
 
 .overview-result h3 {
   color: #e4e4f5;
@@ -13,21 +12,108 @@
   margin-bottom: 16px;
   font-weight: 600;
 }
+/* The scroll container: fills the pane, scrolls only when needed */
+.overview-result {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  padding: 24px;
+  box-sizing: border-box;
+}
 
+.overview-result h3 {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #e5e5ef;
+}
+
+/* File names: a grid of small boxes that wraps to the pane width */
 .file-list {
   list-style: none;
+  margin: 0 0 28px;
   padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 10px;
 }
 
 .file-item {
-  color: #b8b8d0;
-  font-size: 14px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
   font-family: monospace;
-  padding: 8px 12px;
-  background: #22222f;
-  border-radius: 6px;
+  font-size: 13px;
+  color: #d8d8e6;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Code facts: a card holding a grid of stat tiles */
+.facts-card {
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 12px;
+}
+
+.facts-card h3 {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.fact-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  font-size: 12px;
+  color: #9a9ab0;
+}
+
+.fact-row b {
+  font-size: 22px;
+  color: #ffffff;
+}
+
+/* Slim scrollbar that matches the dark theme */
+.overview-result::-webkit-scrollbar { width: 8px; }
+.overview-result::-webkit-scrollbar-track { background: transparent; }
+.overview-result::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+}
+.overview-result { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.2) transparent; }
+.tab-placeholder {
+  margin: auto;
+  text-align: center;
+  color: #9a9ab0;
+}
+.failed-card {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid rgba(255, 120, 120, 0.35);
+  background: rgba(255, 120, 120, 0.06);
+  border-radius: 14px;
+}
+
+.failed-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 0;
+  font-size: 13px;
+  color: #d8d8e6;
+  word-break: break-all;
+}
+
+.failed-row span {
+  color: #ff9a9a;
 }
