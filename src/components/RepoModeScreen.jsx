@@ -18,7 +18,7 @@ function RepoModeScreen() {
 
   function renderTab() {
     if (activeTab === 'Overview') return <OverviewTab result={result} loading={loading} error={error} />
-    if (activeTab === 'Architecture') return <ArchitectureTab />
+    if (activeTab === 'Architecture') return <ArchitectureTab result={result} loading={loading} error={error} />
     if (activeTab === 'Dependencies') return <DependenciesTab result={result} loading={loading} error={error} />
     if (activeTab === 'Feature flow') return <FeatureFlowTab />
     if (activeTab === 'Impact') return <ImpactTab />

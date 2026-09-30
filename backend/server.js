@@ -6,6 +6,7 @@ const path = require('path');
 const cors = require('cors');
 const { analyzeRepo, listAllFiles } = require('./parser');
 const { buildDependencyGraph } = require('./dependencies');
+const { buildArchitecture } = require('./architecture');
 
 const app = express();
 app.use(cors());
@@ -20,18 +21,17 @@ app.post('/analyze', async (req, res) => {
 
   // temp folder on the server's disk where the repo gets cloned
   const tempPath = path.join(os.tmpdir(), 'reposcope-' + Date.now());
-/*  here path  joins all those things with\
-the cloned repo is on servers disk 
-tmpdir ask for the where is temp folder and date and all */
-  
+
   try {
     await simpleGit().clone(githubUrl, tempPath);
     const files = fs.readdirSync(tempPath);
     const facts = analyzeRepo(tempPath);
     const allFiles = listAllFiles(tempPath);
     const dependencies = buildDependencyGraph(facts, tempPath);
-    res.json({ status: 'success', files, facts, allFiles, dependencies });
+    const architecture = buildArchitecture(facts, dependencies);
+    res.json({ status: 'success', files, facts, allFiles, dependencies, architecture });
   } catch (error) {
+    console.log('ANALYZE ERROR:', error);
     res.status(500).json({ status: 'error', message: error.message });
   } finally {
     // delete the cloned copy so temp folders don't pile up

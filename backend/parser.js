@@ -14,7 +14,7 @@ const SFC_EXT = new Set(['.vue', '.svelte']);
 const OTHER_CODE_EXT = new Set([
   '.py', '.java', '.go', '.rb', '.php', '.rs', '.cs', '.cpp', '.c', '.h', '.kt', '.swift', '.dart', '.scala',
 ]);
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB per file// 
 const HTTP_METHODS = new Set(['get', 'post', 'put', 'patch', 'delete', 'all', 'use']);
 const DB_METHODS = new Set([
   'find', 'findOne', 'findById', 'findOneAndUpdate', 'findByIdAndUpdate',

@@ -1,0 +1,134 @@
+.arch-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 4px 12px 4px 4px;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;      /* the whole tab scrolls down to the details box */
+  min-height: 0;
+}
+.arch-wrap::-webkit-scrollbar { width: 8px; height: 8px; }
+.arch-wrap::-webkit-scrollbar-track { background: transparent; }
+.arch-wrap::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 8px; }
+.arch-wrap::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+.arch-box {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px 20px;
+  flex-shrink: 0;
+}
+.arch-box h3 { margin: 0 0 12px; color: var(--text-main); font-size: 18px; }
+
+.arch-legend { display: flex; flex-wrap: wrap; gap: 16px; }
+.arch-legend-item { display: flex; align-items: center; gap: 6px; color: var(--text-muted); font-size: 15px; }
+.arch-legend-item i { width: 12px; height: 12px; border-radius: 4px; display: inline-block; }
+.arch-legend-item i.lg-line { width: 18px; height: 3px; border-radius: 2px; }
+.arch-hint { margin: 12px 0 0; color: var(--text-faint); font-size: 14px; }
+
+.arch-main {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;        /* never squash the diagram to make room */
+  min-width: 0;
+  gap: 16px;
+}
+
+.arch-diagram {
+  flex-shrink: 0;
+  height: auto;
+  max-height: 70vh;        /* medium fixed height */
+  min-height: 360px;
+  min-width: 0;
+  overflow: auto;        /* scrolls sideways AND down if the repo is big */
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 8px;
+}
+.arch-diagram svg { display: block; margin: 0 auto; }
+
+/* NEW: dark scrollbar for the diagram box */
+.arch-diagram::-webkit-scrollbar { width: 8px; height: 8px; }
+.arch-diagram::-webkit-scrollbar-track { background: transparent; }
+.arch-diagram::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 8px; }
+.arch-diagram::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+.arch-config {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 8px 4px;
+  color: var(--text-faint);
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.arch-config b {
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 3px 8px;
+  color: var(--text-muted);
+  font-family: monospace;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.arch-panel {
+  flex-shrink: 0;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px 20px;
+  /* no max-height or overflow: the tab itself scrolls */
+}
+.arch-panel h4 {
+  margin: 0 0 10px;
+  color: var(--text-main);
+  font-family: monospace;
+  font-size: 16px;
+  word-break: break-all;
+}
+.arch-role { display: inline-flex; align-items: center; font-size: 14px; }
+.arch-badge {
+  margin-left: 8px;
+  background: #60a5fa;
+  color: #0b1020;
+  border-radius: 6px;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 700;
+}
+.arch-why { color: var(--text-muted); font-size: 15px; margin: 8px 0 0; }
+.arch-empty { color: var(--text-faint); font-size: 15px; margin: 6px 0; }
+
+.arch-title {
+  margin-top: 16px;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.arch-title span { margin-left: 6px; background: var(--border-color); border-radius: 8px; padding: 1px 8px; }
+
+.arch-link, .arch-item {
+  margin-top: 6px;
+  padding: 8px 12px;
+  background: var(--bg-main);
+  border-radius: 6px;
+  color: var(--text-main);
+  font-family: monospace;
+  font-size: 14px;
+  word-break: break-all;
+}
+.arch-link { cursor: pointer; }
+.arch-link.l-uses { border-left: 3px solid #38bdf8; }
+.arch-link.l-usedby { border-left: 3px solid #f472b6; }
+.arch-link:hover { background: var(--border-color); }
+.arch-item em { float: right; margin-left: 10px; color: var(--text-faint); font-style: normal; }

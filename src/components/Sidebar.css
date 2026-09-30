@@ -1,5 +1,5 @@
 .sidebar {
-  width: 170px;
+  width: 200px;
   background: var(--bg-panel);
   border: 1px solid var(--border-color);
   border-radius: 10px;
@@ -8,22 +8,23 @@
   flex-direction: column;
   gap: 2px;
   flex-shrink: 0;
+  overflow-y: auto;
 }
 
 .sidebar-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px;
+  padding: 12px 14px;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 15px;
   color: var(--text-muted);
   cursor: pointer;
 }
 
 .tab-icon {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
 }
 
