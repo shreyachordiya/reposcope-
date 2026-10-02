@@ -27,27 +27,42 @@ function sortedChildren(node) {
   )
 }
 
-function TreeNode({ node, depth, failed, selected, onSelect }) {
+function TreeNode({ node, depth, failed, selected, onSelect, badges }) {
   const [open, setOpen] = useState(false)
   const indent = { paddingLeft: 12 + depth * 18 }
 
   if (node.isFile) {
     const bad = failed.has(node.path)
+    const risk = badges && badges[node.path]
     const cls =
       'tree-row tree-file' +
       (bad ? ' tree-failed' : '') +
       (selected === node.path ? ' tree-selected' : '')
     return (
-      <div className={cls} style={indent} onClick={() => onSelect(node.path)}>
+      <div
+        className={cls}
+        style={indent}
+        onClick={() => onSelect(selected === node.path ? null : node.path)}
+      >
         {node.name}
         {bad && <span className="tree-badge">unreadable</span>}
+        {!bad && risk && (
+          <span className={'tree-badge risk-' + risk.level}>{risk.text}</span>
+        )}
       </div>
     )
   }
 
   return (
     <>
-      <div className="tree-row tree-folder" style={indent} onClick={() => setOpen(!open)}>
+      <div
+        className="tree-row tree-folder"
+        style={indent}
+        onClick={() => {
+          if (open && selected && selected.startsWith(node.path + '/')) onSelect(null)
+          setOpen(!open)
+        }}
+      >
         <span className="tree-arrow">{open ? '▼' : '▶'}</span>
         {node.name}
       </div>
@@ -60,13 +75,14 @@ function TreeNode({ node, depth, failed, selected, onSelect }) {
             failed={failed}
             selected={selected}
             onSelect={onSelect}
+            badges={badges}
           />
         ))}
     </>
   )
 }
 
-function FileTree({ paths, failedPaths = [], selected, onSelect }) {
+function FileTree({ paths, failedPaths = [], selected, onSelect, badges }) {
   const root = useMemo(() => buildTree(paths), [paths])
   const failed = useMemo(() => new Set(failedPaths), [failedPaths])
 
@@ -80,6 +96,7 @@ function FileTree({ paths, failedPaths = [], selected, onSelect }) {
           failed={failed}
           selected={selected}
           onSelect={onSelect}
+          badges={badges}
         />
       ))}
     </div>

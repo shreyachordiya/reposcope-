@@ -4,7 +4,6 @@ import TopBar from './TopBar'
 import OverviewTab from './tabs/OverviewTab'
 import ArchitectureTab from './tabs/ArchitectureTab'
 import DependenciesTab from './tabs/DependenciesTab'
-import FeatureFlowTab from './tabs/FeatureFlowTab'
 import ImpactTab from './tabs/ImpactTab'
 import SecurityTab from './tabs/SecurityTab'
 import './RepoModeScreen.css'
@@ -17,14 +16,19 @@ function RepoModeScreen() {
   const [error, setError] = useState('')
 
   function renderTab() {
-    if (activeTab === 'Overview') return <OverviewTab result={result} loading={loading} error={error} />
-    if (activeTab === 'Architecture') return <ArchitectureTab result={result} loading={loading} error={error} />
-    if (activeTab === 'Dependencies') return <DependenciesTab result={result} loading={loading} error={error} />
-    if (activeTab === 'Feature flow') return <FeatureFlowTab />
-    if (activeTab === 'Impact') return <ImpactTab />
-    if (activeTab === 'Security') return <SecurityTab />
+  const tabs = {
+    'Overview': <OverviewTab result={result} loading={loading} error={error} />,
+    'Architecture': <ArchitectureTab result={result} loading={loading} error={error} />,
+    'Dependencies': <DependenciesTab result={result} loading={loading} error={error} />,
+    'Impact': <ImpactTab result={result} loading={loading} error={error} />,
+    'Security': <SecurityTab />,
   }
-
+  return Object.entries(tabs).map(([name, el]) => (
+    <div key={name} style={{ display: activeTab === name ? 'contents' : 'none' }}>
+      {el}
+    </div>
+  ))
+}
   async function handleAnalyze(githubUrl) {
     setLoading(true)
     setError('')

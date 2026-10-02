@@ -1,0 +1,38 @@
+.risk-text-high   { color: #ff6b6b !important; }
+.risk-text-medium { color: #ffb347 !important; }
+.risk-text-low    { color: #4cd394 !important; }
+
+.tree-row .tree-badge.risk-high,
+.risk-pill.risk-high   { background: rgba(255,107,107,0.18); color: #ff8a8a; }
+.tree-row .tree-badge.risk-medium,
+.risk-pill.risk-medium { background: rgba(255,179,71,0.18);  color: #ffb347; }
+.tree-row .tree-badge.risk-low,
+.risk-pill.risk-low    { background: rgba(76,211,148,0.18);  color: #4cd394; }
+.tree-row .tree-badge.risk-none,
+.risk-pill.risk-none   { background: rgba(255,255,255,0.08); color: #9a9ab0; }
+
+.tree-row .tree-badge[class*="risk-"] { font-size: 13px; }
+
+.risk-pill {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 600;
+  margin-right: 6px;
+}
+.impact-sentence { font-size: 16px; color: #d8d8e6; line-height: 1.6; margin: 0; }
+
+.panel-item.impact-col { flex-direction: column; justify-content: flex-start; }
+.impact-col em { font-size: 15px; }
+
+.impact-steps {
+  margin-top: 8px;
+  padding-left: 14px;
+  border-left: 3px solid #7c5cff;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.impact-step { font-size: 15px; line-height: 1.5; color: #b8b8cc; }
+.impact-origin { color: #ffffff; font-weight: 600; }

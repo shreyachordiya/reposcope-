@@ -14,7 +14,7 @@ const SFC_EXT = new Set(['.vue', '.svelte']);
 const OTHER_CODE_EXT = new Set([
   '.py', '.java', '.go', '.rb', '.php', '.rs', '.cs', '.cpp', '.c', '.h', '.kt', '.swift', '.dart', '.scala',
 ]);
-const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB per file// 
+const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB per file
 const HTTP_METHODS = new Set(['get', 'post', 'put', 'patch', 'delete', 'all', 'use']);
 const DB_METHODS = new Set([
   'find', 'findOne', 'findById', 'findOneAndUpdate', 'findByIdAndUpdate',
@@ -26,13 +26,13 @@ const WRAPPERS = new Set(['memo', 'forwardRef', 'observer']);
 function isReadable(name) {
   const ext = path.extname(name).toLowerCase();
   return JS_EXT.has(ext) || SFC_EXT.has(ext);
-}//get the extension of those files in lowercase and see are they in js set or anyother 
+}
 
 // 1. Recursively collect every readable code file
 function walk(dir, found = []) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (entry.isSymbolicLink()) continue;//any shortcut is there then skip that one 
-    const full = path.join(dir, entry.name);//go isnide folders folder 
+    if (entry.isSymbolicLink()) continue;
+    const full = path.join(dir, entry.name);
     if (entry.isDirectory()) {
       if (!SKIP_DIRS.has(entry.name)) walk(full, found);
     } else if (isReadable(entry.name)) {
@@ -150,13 +150,60 @@ function containsJSX(fnPath) {
   return found;
 }
 
+// PHASE 6: which function is this code sitting inside?
+// Walks outward until it finds a function that has a usable name.
+//   function foo() {}                     -> "foo"
+//   const foo = () => {}                  -> "foo"
+//   app.post('/x', (req, res) => {})      -> "POST /x"
+//   <button onClick={() => {}} />         -> "onClick@40"  (event + line)
+// Anonymous callbacks (.then, .map, setTimeout) count as part of the function around them.
+function enclosingName(p) {
+  let fn = p.getFunctionParent();
+  while (fn) {
+    const n = fn.node;
+    const parent = fn.parent;
+
+    if (n.type === 'FunctionDeclaration' && n.id) return n.id.name;
+    if ((n.type === 'ClassMethod' || n.type === 'ObjectMethod') && n.key && n.key.type === 'Identifier') {
+      return n.key.name;
+    }
+    if (parent.type === 'VariableDeclarator' && parent.id.type === 'Identifier') return parent.id.name;
+
+    if (parent.type === 'CallExpression') {
+      const grand = fn.parentPath.parent;
+      if (WRAPPERS.has(wrapperName(parent.callee)) && grand.type === 'VariableDeclarator' && grand.id.type === 'Identifier') {
+        return grand.id.name;
+      }
+      const c = parent.callee;
+      if (
+        c.type === 'MemberExpression' && !c.computed && c.property.type === 'Identifier' &&
+        HTTP_METHODS.has(c.property.name) &&
+        parent.arguments[0] && parent.arguments[0].type === 'StringLiteral' &&
+        parent.arguments.includes(n)
+      ) {
+        return c.property.name.toUpperCase() + ' ' + parent.arguments[0].value;
+      }
+    }
+
+    if (parent.type === 'JSXExpressionContainer') {
+      const attr = fn.parentPath.parent;
+      if (attr && attr.type === 'JSXAttribute' && typeof attr.name.name === 'string') {
+        return attr.name.name + '@' + (n.loc ? n.loc.start.line : '?');
+      }
+    }
+
+    fn = fn.getFunctionParent();
+  }
+  return null; // top level of the file
+}
+
 // 2. Parse one file and collect its facts
 function analyzeFile(filePath, rootDir) {
   const rel = path.relative(rootDir, filePath).split(path.sep).join('/');
   const facts = {
     path: rel, size: 0, generated: false,
     imports: [], exports: [], functions: [], classes: [], components: [], types: [],
-    routes: [], apiCalls: [], models: [], dbCalls: [], eventHandlers: [],
+    routes: [], apiCalls: [], models: [], dbCalls: [], eventHandlers: [], calls: [],
     error: null,
   };
 
@@ -298,10 +345,31 @@ function analyzeFile(filePath, rootDir) {
 
       CallExpression(p) {
         const { callee, arguments: args } = p.node;
+        const inside = enclosingName(p); // which function this call is inside
 
-        // require('x')
+        // PHASE 6: remember every plain call so flows can follow them
+        if (callee.type === 'Identifier' && callee.name !== 'require') {
+          facts.calls.push({ name: callee.name, object: null, line: line(p.node), inside });
+        } else if (
+          callee.type === 'MemberExpression' && !callee.computed &&
+          callee.property.type === 'Identifier' && callee.object.type === 'Identifier'
+        ) {
+          facts.calls.push({ name: callee.property.name, object: callee.object.name, line: line(p.node), inside });
+        }
+
+        // require('x')  (now also saves the names: const { a, b } = require('x'))
         if (callee.type === 'Identifier' && callee.name === 'require' && args[0] && args[0].type === 'StringLiteral') {
-          facts.imports.push({ source: args[0].value, kind: 'require', names: [], typeOnly: false, line: line(p.node) });
+          let names = [];
+          const par = p.parent;
+          if (par.type === 'VariableDeclarator') {
+            if (par.id.type === 'Identifier') names = [par.id.name];
+            else if (par.id.type === 'ObjectPattern') {
+              names = par.id.properties
+                .map((x) => (x.value && x.value.type === 'Identifier' ? x.value.name : x.argument && x.argument.name))
+                .filter(Boolean);
+            }
+          }
+          facts.imports.push({ source: args[0].value, kind: 'require', names, typeOnly: false, line: line(p.node) });
           return;
         }
         // import('x')
@@ -318,7 +386,7 @@ function analyzeFile(filePath, rootDir) {
             const m = opts.properties.find((x) => x.key && x.key.name === 'method');
             if (m && m.value.type === 'StringLiteral') method = m.value.value.toUpperCase();
           }
-          facts.apiCalls.push({ client: 'fetch', method, url: url.value, resolved: url.resolved, line: line(p.node) });
+          facts.apiCalls.push({ client: 'fetch', method, url: url.value, resolved: url.resolved, line: line(p.node), inside });
           return;
         }
         // model('Name', schema) after destructuring: const { model } = require('mongoose')
@@ -333,11 +401,11 @@ function analyzeFile(filePath, rootDir) {
           callee.object.object.type === 'Identifier' && /^prisma$/i.test(callee.object.object.name) &&
           callee.property.type === 'Identifier'
         ) {
-          facts.dbCalls.push({ model: callee.object.property.name, method: callee.property.name, client: 'prisma', line: line(p.node) });
+          facts.dbCalls.push({ model: callee.object.property.name, method: callee.property.name, client: 'prisma', line: line(p.node), inside });
           return;
         }
 
-                // chained routes: router.route('/x').get(handler).post(handler)
+        // chained routes: router.route('/x').get(handler).post(handler)
         if (
           callee.type === 'MemberExpression' && !callee.computed &&
           callee.property.type === 'Identifier' && HTTP_METHODS.has(callee.property.name) &&
@@ -361,7 +429,7 @@ function analyzeFile(filePath, rootDir) {
         // axios.get(url)
         if (m.object === 'axios' && HTTP_METHODS.has(m.property)) {
           const url = readUrl(args[0]);
-          facts.apiCalls.push({ client: 'axios', method: m.property.toUpperCase(), url: url.value, resolved: url.resolved, line: line(p.node) });
+          facts.apiCalls.push({ client: 'axios', method: m.property.toUpperCase(), url: url.value, resolved: url.resolved, line: line(p.node), inside });
           return;
         }
         // mongoose.model('Name', schema)
@@ -387,7 +455,7 @@ function analyzeFile(filePath, rootDir) {
         }
         // User.find(), user.save() -> Capitalized object = likely a Mongoose model
         if (DB_METHODS.has(m.property) && m.object && /^[A-Z]/.test(m.object)) {
-          facts.dbCalls.push({ model: m.object, method: m.property, client: 'mongoose', line: line(p.node) });
+          facts.dbCalls.push({ model: m.object, method: m.property, client: 'mongoose', line: line(p.node), inside });
         }
       },
 
@@ -397,7 +465,14 @@ function analyzeFile(filePath, rootDir) {
         const v = p.node.value;
         if (v && v.type === 'JSXExpressionContainer') {
           const e = v.expression;
-          facts.eventHandlers.push({ event: name, handler: e.type === 'Identifier' ? e.name : '(inline)', line: line(p.node) });
+          const named = e.type === 'Identifier';
+          facts.eventHandlers.push({
+            event: name,
+            handler: named ? e.name : '(inline)',
+            // fn = the function name flows start from (inline ones use event@line)
+            fn: named ? e.name : name + '@' + line(e),
+            line: line(p.node),
+          });
         }
       },
     });

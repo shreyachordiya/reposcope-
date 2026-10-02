@@ -7,7 +7,7 @@ const cors = require('cors');
 const { analyzeRepo, listAllFiles } = require('./parser');
 const { buildDependencyGraph } = require('./dependencies');
 const { buildArchitecture } = require('./architecture');
-
+const { buildImpact } = require('./impact');
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -23,13 +23,14 @@ app.post('/analyze', async (req, res) => {
   const tempPath = path.join(os.tmpdir(), 'reposcope-' + Date.now());
 
   try {
-    await simpleGit().clone(githubUrl, tempPath);
+    await simpleGit().clone(githubUrl, tempPath,['--depth', '1']);
     const files = fs.readdirSync(tempPath);
     const facts = analyzeRepo(tempPath);
     const allFiles = listAllFiles(tempPath);
     const dependencies = buildDependencyGraph(facts, tempPath);
     const architecture = buildArchitecture(facts, dependencies);
-    res.json({ status: 'success', files, facts, allFiles, dependencies, architecture });
+       const impact = buildImpact(dependencies, facts);
+    res.json({ status: 'success', files, facts, allFiles, dependencies, architecture, impact });
   } catch (error) {
     console.log('ANALYZE ERROR:', error);
     res.status(500).json({ status: 'error', message: error.message });
