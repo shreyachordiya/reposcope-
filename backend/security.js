@@ -37,38 +37,16 @@ export default function SecurityTab({ result, loading, error }) {
   const selected = shown.find((f) => f.id === selectedId) || null;
   const counts = summary.byCategory || {};
 
-  const stats = [
-    ['findings', summary.total, 'inherit'],
-    ['high', summary.high, '#ff6b6b'],
-    ['medium', summary.medium, '#ffb347'],
-    ['low', summary.low, '#4cd394'],
-    ['files scanned', summary.filesScanned, 'inherit'],
-  ];
-
   return (
     <div className="overview-result">
-      <div style={{ padding: '20px 24px', borderRadius: 16, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}>
-        <div style={{ fontSize: 14, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', opacity: 0.85 }}>
-          Security summary
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 14, marginTop: 14 }}>
-          {stats.map(([label, value, color]) => (
-            <div
-              key={label}
-              style={{
-                padding: '14px 18px',
-                borderRadius: 12,
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 6,
-              }}
-            >
-              <span style={{ fontSize: 15, opacity: 0.8 }}>{label}</span>
-              <b style={{ fontSize: 28, color }}>{value}</b>
-            </div>
-          ))}
+      <div className="sec-summary">
+        <div className="sec-summary-title">Security summary</div>
+        <div className="sec-stats">
+          <div className="sec-stat"><span>findings</span><b>{summary.total}</b></div>
+          <div className="sec-stat"><span>high</span><b className="sec-c-high">{summary.high}</b></div>
+          <div className="sec-stat"><span>medium</span><b className="sec-c-medium">{summary.medium}</b></div>
+          <div className="sec-stat"><span>low</span><b className="sec-c-low">{summary.low}</b></div>
+          <div className="sec-stat"><span>files scanned</span><b>{summary.filesScanned}</b></div>
         </div>
       </div>
 

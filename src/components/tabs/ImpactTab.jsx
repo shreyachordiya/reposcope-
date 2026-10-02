@@ -56,10 +56,9 @@ export default function ImpactTab({ result, loading, error }) {
                   : ' If you change this file, ' + info.total + ' other file(s) can be affected.'}
               </p>
 
-              <div className="panel-section">
-                <div className="panel-title"></div>
-                <div className="panel-item">{info.total} file(s) affected. Rule: {info.rule}.</div>
-              </div>
+          <div className="panel-section">
+  <div className="panel-item">{info.total} file(s) affected.</div>
+</div>
 
               <div className="panel-section">
                 <div className="panel-title">What this file exports <span>{info.exports.length}</span></div>

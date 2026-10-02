@@ -1,0 +1,64 @@
+/* Security tab. The summary boxes are styled inside the JSX. */
+
+.sec-chips { display: flex; gap: 10px; flex-wrap: wrap; margin: 18px 0 14px; }
+.sec-chip {
+  font-size: 15px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+  cursor: pointer;
+}
+.sec-chip.active { background: rgba(167, 139, 250, 0.25); border-color: #a78bfa; }
+
+.sec-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.sec-scroll { max-height: 58vh; overflow-y: auto; min-height: 0; }
+.sec-scroll .panel-item { word-break: normal; overflow-wrap: break-word; }
+
+.sec-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.sec-row:hover { background: rgba(255, 255, 255, 0.05); }
+.sec-row.selected { background: rgba(167, 139, 250, 0.2); }
+.sec-row-text { min-width: 0; }
+.sec-row-title { font-size: 16px; }
+.sec-row-file {
+  font-size: 15px; opacity: 0.7;
+  font-family: monospace;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.sec-dot { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+.sec-bg-high { background: #ff6b6b; color: #1a1020; }
+.sec-bg-medium { background: #ffb347; color: #1a1020; }
+.sec-bg-low { background: #4cd394; color: #10201a; }
+
+.sec-detail-title { font-size: 18px; font-weight: 600; margin-bottom: 10px; }
+.sec-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.sec-pill { font-size: 15px; padding: 4px 12px; border-radius: 999px; font-weight: 600; }
+.sec-pill-plain {
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit; font-weight: 400;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.sec-mono { font-family: monospace; font-size: 16px; }
+.sec-evidence {
+  margin: 4px 0 14px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  font-family: monospace;
+  font-size: 15px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.sec-checks { margin-top: 16px; font-size: 15px; }
+.sec-checks summary { cursor: pointer; margin-bottom: 8px; }
+
+@media (max-width: 900px) {
+  .sec-layout { grid-template-columns: 1fr; }
+}

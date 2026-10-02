@@ -21,7 +21,7 @@ function RepoModeScreen() {
     'Architecture': <ArchitectureTab result={result} loading={loading} error={error} />,
     'Dependencies': <DependenciesTab result={result} loading={loading} error={error} />,
     'Impact': <ImpactTab result={result} loading={loading} error={error} />,
-    'Security': <SecurityTab />,
+    'Security': <SecurityTab result={result} loading={loading} error={error} />,
   }
   return Object.entries(tabs).map(([name, el]) => (
     <div key={name} style={{ display: activeTab === name ? 'contents' : 'none' }}>

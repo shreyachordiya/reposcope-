@@ -8,6 +8,7 @@ const { analyzeRepo, listAllFiles } = require('./parser');
 const { buildDependencyGraph } = require('./dependencies');
 const { buildArchitecture } = require('./architecture');
 const { buildImpact } = require('./impact');
+const { buildSecurity } = require('./security');
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -29,8 +30,9 @@ app.post('/analyze', async (req, res) => {
     const allFiles = listAllFiles(tempPath);
     const dependencies = buildDependencyGraph(facts, tempPath);
     const architecture = buildArchitecture(facts, dependencies);
-       const impact = buildImpact(dependencies, facts);
-    res.json({ status: 'success', files, facts, allFiles, dependencies, architecture, impact });
+    const impact = buildImpact(dependencies, facts);
+    const security = buildSecurity(tempPath);   // use the same variable you pass to buildDependencyGraph as rootDir
+    res.json({ status: 'success', files, facts, allFiles, dependencies, architecture, impact,security});
   } catch (error) {
     console.log('ANALYZE ERROR:', error);
     res.status(500).json({ status: 'error', message: error.message });
