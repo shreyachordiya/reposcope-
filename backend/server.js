@@ -12,8 +12,7 @@ const { buildImpact } = require('./impact');
 const { buildSecurityFull } = require('./security');   // CHANGED: full version
 const { askLLM } = require('./llm');
 const { buildContext } = require('./context');
-const { registerHackathonRoutes } = require('./hackathon/routes')   // Hackathon mode
-
+const { registerHackathonRoutes } = require('./Hackathon/routes')
 function readReadme(dir) {
   try {
     const file = fs.readdirSync(dir).find((n) => /^readme(\.(md|txt))?$/i.test(n))
