@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import './OverviewTab.css';
-import './SecurityTab.css';
+import './Securitytab.css';
 
 
 const CATS = [
