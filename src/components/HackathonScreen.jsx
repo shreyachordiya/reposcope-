@@ -66,7 +66,7 @@ function HackathonScreen({ mode, onToggleMode, onBack }) {
       if (p.status === 'done') continue
       update(p.url, { status: 'analyzing' })
       try {
-        const response = await fetch('http://localhost:5000/hackathon/scorecard', {
+        const response = await fetch('https://reposcope-cmdt.onrender.com/hackathon/scorecard', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ githubUrl: p.url }),

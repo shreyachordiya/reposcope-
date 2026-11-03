@@ -32,7 +32,7 @@ export default function AskTab({ result, loading, error }) {
     setThinking(true);
 
     try {
-      const res = await fetch('http://localhost:5000/ask', {
+      const res = await fetch('https://reposcope-cmdt.onrender.com/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question: q, history, analysisId: result.analysisId }),
