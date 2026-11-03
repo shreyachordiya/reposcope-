@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { PROVIDERS } = require('./Providers');
+const { PROVIDERS } = require('./providers');
 
 const cooldown = {}; // provider name -> time we may try it again
 
