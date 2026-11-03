@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import LandingScreen from './components/LandingScreen'
 import RepoModeScreen from './components/RepoModeScreen'
-import HackathonScreen from './components/Hackathonscreen'
+import HackathonScreen from './components/HackathonScreen'
 
 function App() {
   const [screen, setScreen] = useState('landing')
