@@ -1,19 +1,7 @@
-.overview-result {
-  position: absolute;
-  inset: 0;                      /* exactly the size of the pane */
-  overflow-y: auto;
-  box-sizing: border-box;
-  /* keeps the same centered column width as now, with breathing room at the bottom */
-  padding: 24px max(24px, calc((100% - 1000px) / 2)) 48px;}
-
-.overview-result h3 {
-  color: #e4e4f5;
-  font-size: 18px;
-  margin-bottom: 16px;
-  font-weight: 600;
-}
 /* The scroll container: fills the pane, scrolls only when needed */
 .overview-result {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   overflow-y: auto;
@@ -58,7 +46,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 14px;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 12px;
 }
 
@@ -76,6 +64,8 @@
   border-radius: 10px;
   font-size: 14px;
   color: #9a9ab0;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .fact-row b {
@@ -91,11 +81,13 @@
   border-radius: 8px;
 }
 .overview-result { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.2) transparent; }
+
 .tab-placeholder {
   margin: auto;
   text-align: center;
   color: #9a9ab0;
 }
+
 .failed-card {
   margin-top: 16px;
   padding: 16px;

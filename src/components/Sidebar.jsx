@@ -5,7 +5,8 @@ const tabs = [
   { name: 'Architecture', icon: 'M12 3v4M6 21v-4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4M12 7a4 4 0 1 0 0 8 4 4 0 0 0 0-8z' },
   { name: 'Dependencies', icon: 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01' },
   { name: 'Impact', icon: 'M12 2v20M2 12h20M12 2l4 4-4 4-4-4 4-4z' },
-  { name: 'Security', icon: 'M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z' }
+  { name: 'Security', icon: 'M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z' },
+  { name: 'Ask RepoScope', icon: 'M21 12a8 8 0 0 1-11.6 7.1L4 20l1.1-4.6A8 8 0 1 1 21 12zM12 8.5v5M9.5 11h5' },
 ]
 
 function Sidebar({ activeTab, onSelectTab }) {

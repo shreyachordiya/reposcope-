@@ -111,3 +111,92 @@
   align-items: center;
   gap: 10px;
 }
+.nav-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 12px;
+}
+
+.nav-btn {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #2a2a3d;
+  border: 1px solid #44445c;
+  color: #cfcfe8;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.15s ease;
+}
+
+.nav-btn:hover {
+  background: #35354a;
+  color: white;
+}
+
+.nav-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.clear-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid rgba(255, 107, 107, 0.5);
+  color: #ff6b6b;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.clear-btn:hover {
+  background: rgba(255, 107, 107, 0.12);
+}
+
+.clear-btn.dim {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.clear-btn.dim:hover {
+  background: transparent;
+}
+
+.clear-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.nav-ask {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.nav-text-btn {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid #44445c;
+  color: #cfcfe8;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.nav-text-btn:hover {
+  background: #35354a;
+  color: white;
+}
+/* Clear sits right after the Analyze button in Repo mode */
+.search-group + .nav-group {
+  margin-left: 10px;
+}

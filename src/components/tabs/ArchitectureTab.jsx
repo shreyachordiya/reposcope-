@@ -1,20 +1,35 @@
 import { useState, useMemo } from 'react'
 import './ArchitectureTab.css'
 
-const COLORS = { ui: '#a78bfa', server: '#34d399', data: '#fb923c', helper: '#2dd4bf', config: '#94a3b8' }
-const ROLE_LABEL = { ui: 'UI', server: 'Server / routes', data: 'Data', helper: 'Helper', config: 'Config' }
+// CHANGED #2: controller, middleware and model have their own colour and label
+const COLORS = {
+  ui: '#a78bfa', server: '#34d399', data: '#fb923c', helper: '#2dd4bf', config: '#94a3b8',
+  controller: '#facc15', middleware: '#38bdf8', model: '#f43f5e',
+}
+const ROLE_LABEL = {
+  ui: 'UI', server: 'Server / routes', data: 'Data', helper: 'Helper', config: 'Config',
+  controller: 'Controller', middleware: 'Middleware', model: 'Model',
+}
+const FALLBACK_COLOR = '#94a3b8' // NEW: used when a file has no known role
 
+// CHANGED: null-safe formatters + the new parser facts at the bottom
 const DETAILS = [
   ['components', 'Components', (x) => x.name],
   ['functions', 'Functions', (x) => x.name],
   ['eventHandlers', 'Event handlers', (x) => `${x.event} → ${x.handler}`],
-  ['routes', 'Routes', (x) => `${x.method} ${x.path} → ${x.handler}`],
-  ['apiCalls', 'API calls', (x) => `${x.method} ${x.url}`],
+  ['routes', 'Routes', (x) => `${x.method} ${x.path ?? '(dynamic)'} → ${x.handler}${x.middleware?.length ? ' [' + x.middleware.join(', ') + ']' : ''}`],
+  ['apiCalls', 'API calls', (x) => `${x.method} ${x.url ?? '(no url)'}`],
   ['models', 'Models', (x) => x.name],
   ['dbCalls', 'Database calls', (x) => `${x.model}.${x.method}`],
+  // NEW
+  ['clientRoutes', 'Page routes', (x) => `${x.path ?? (x.index ? '(index)' : '(no path)')} → ${[...(x.wrappers || []), x.element || '?'].join(' › ')}`],
+  ['hooks', 'Effects', (x) => `${x.hook} (${x.runs})${x.calls?.length ? ' → ' + x.calls.join(', ') : ''}`],
+  ['middleware', 'Middleware', (x) => `${x.name}${x.path ? ' on ' + x.path : ''}`],
+  ['auth', 'Auth', (x) => `${x.kind} — ${x.detail}`],
+  ['envVars', 'Env variables', (x) => x.name],
+  ['dbConnections', 'DB connections', (x) => `${x.client} → ${x.uri}`],
 ]
 
-// CHANGED: bigger boxes and spacing
 const NODE_W = 180
 const NODE_H = 40
 const GAP_X = 24
@@ -24,7 +39,6 @@ const PAD = 24
 const SEC_GAP = 40
 
 const baseName = (p) => p.split('/').pop()
-// CHANGED: wider boxes fit more characters
 const short = (n) => (n.length > 22 ? n.slice(0, 21) + '…' : n)
 
 // arrow from the bottom of "a" to the top of "b" (a uses b)
@@ -54,7 +68,10 @@ function connPath(a, b) {
 // decide where every box goes (rows = layers, sections side by side)
 function buildLayout(arch, deps) {
   if (!arch || !deps) return null
-  const sections = arch.sections.filter((s) => s.side !== 'config')
+  // CHANGED: also drop sections with no rows or only empty rows (Math.max of nothing = -Infinity = NaN width)
+  const sections = (arch.sections || []).filter(
+    (s) => s.side !== 'config' && s.rows && s.rows.some((r) => r.files && r.files.length > 0)
+  )
   if (sections.length === 0) return null
 
   const pos = {}
@@ -64,14 +81,13 @@ function buildLayout(arch, deps) {
   let maxRows = 0
 
   for (const sec of sections) {
-    const maxCols = Math.max(...sec.rows.map((r) => r.files.length))
+    const maxCols = Math.max(1, ...sec.rows.map((r) => r.files.length)) // CHANGED: at least 1
     const innerW = maxCols * NODE_W + (maxCols - 1) * GAP_X
     const secW = innerW + PAD * 2
 
     sec.rows.forEach((row, i) => {
       let files = row.files
       if (i > 0) {
-        // put each box under the boxes that use it, so lines cross less
         const avg = (p) => {
           const xs = ((deps.nodes[p] && deps.nodes[p].usedBy) || []).filter((q) => pos[q]).map((q) => pos[q].x)
           return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 1e9
@@ -104,7 +120,7 @@ function buildLayout(arch, deps) {
     edges.push({ from: e.from, to: e.to })
   }
 
-  const conns = arch.connections
+  const conns = (arch.connections || [])
     .filter((c) => pos[c.from] && pos[c.to])
     .map((c) => ({ ...c, ...connPath(pos[c.from], pos[c.to]) }))
 
@@ -113,6 +129,7 @@ function buildLayout(arch, deps) {
 
 function ArchitectureTab({ result, loading, error }) {
   const [selected, setSelected] = useState(null)
+  const [showEdges, setShowEdges] = useState(true) // CHANGED #3: show / hide the grey "A uses B" arrows
   const arch = result?.architecture
   const deps = result?.dependencies
   const layout = useMemo(() => buildLayout(arch, deps), [arch, deps])
@@ -126,7 +143,7 @@ function ArchitectureTab({ result, loading, error }) {
   const info = selected ? arch.files[selected] : null
   const facts = selected ? result.facts.files.find((f) => f.path === selected) : null
   const configFiles = Object.keys(arch.files).filter((p) => arch.files[p].side === 'config')
-  const myLinks = arch.connections.filter((c) => c.from === selected || c.to === selected)
+  const myLinks = (arch.connections || []).filter((c) => c.from === selected || c.to === selected)
 
   const linked = new Set()
   if (selected) {
@@ -143,6 +160,9 @@ function ArchitectureTab({ result, loading, error }) {
 
   const pick = (p) => setSelected(selected === p ? null : p)
 
+  // CHANGED #3: when the grey arrows are hidden, a selected box still shows its own arrows
+  const shownEdges = showEdges ? edges : edges.filter((e) => selected && (e.from === selected || e.to === selected))
+
   return (
     <div className="arch-wrap">
       <div className="arch-box">
@@ -158,17 +178,29 @@ function ArchitectureTab({ result, loading, error }) {
         </div>
         <p className="arch-hint">
           Click a box: blue arrows = what it uses, pink arrows = who uses it. Click empty space to reset.
+          {!showEdges && ' Grey arrows are hidden, so only the clicked box shows its arrows.'}
         </p>
+        {/* CHANGED #3: the toggle */}
+        <button
+          type="button"
+          onClick={() => setShowEdges((v) => !v)}
+          style={{
+            marginTop: 12, padding: '6px 14px', fontSize: 15, cursor: 'pointer',
+            background: 'var(--bg-main)', color: 'var(--text-muted)',
+            border: '1px solid var(--border-color)', borderRadius: 8,
+          }}
+        >
+          {showEdges ? 'Hide' : 'Show'} grey "A uses B" arrows
+        </button>
       </div>
 
       <div className="arch-main">
         <div className="arch-diagram">
-          {/* CHANGED: real pixel size, so it never shrinks; the box scrolls instead */}
           <svg
             viewBox={`0 0 ${width} ${height}`}
             style={{ width: '100%', minWidth: width * 0.85, maxWidth: width }}
             onClick={() => setSelected(null)}
->
+          >
             <defs>
               {[['grey', '#6b6390'], ['blue', '#38bdf8'], ['pink', '#f472b6'], ['green', '#34d399']].map(([id, c]) => (
                 <marker key={id} id={`arr-${id}`} markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
@@ -181,19 +213,17 @@ function ArchitectureTab({ result, loading, error }) {
               <g key={b.title}>
                 <rect x={b.x} y={10} width={b.w} height={height - 20} rx={14}
                   fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.08)" />
-                {/* CHANGED: bigger section title */}
                 <text x={b.x + 18} y={44} style={{ fill: 'var(--text-main)', fontSize: 26, fontWeight: 700 }}>{b.title}</text>
               </g>
             ))}
 
             {rowLabels.map((r, i) => (
-              /* CHANGED: fontSize 12 */
               <text key={i} x={r.x} y={r.y} style={{ fill: 'var(--text-faint)', fontSize: 16, fontWeight: 700, letterSpacing: '0.06em' }}>
                 {r.text.toUpperCase()}
               </text>
             ))}
 
-            {edges.map((e) => {
+            {shownEdges.map((e) => {
               let color = '#6b6390', w = 1.5, op = 0.75, mk = 'grey'
               if (selected) {
                 if (e.from === selected) { color = '#38bdf8'; w = 2.5; op = 1; mk = 'blue' }
@@ -208,12 +238,11 @@ function ArchitectureTab({ result, loading, error }) {
 
             {conns.map((c, i) => {
               const text = `${c.method} ${c.path}`
-              const w = text.length * 9 + 22 // CHANGED
+              const w = text.length * 9 + 22
               const hot = !selected || c.from === selected || c.to === selected
               return (
                 <g key={i} opacity={hot ? 1 : 0.1}>
                   <path d={c.d} fill="none" stroke="#34d399" strokeWidth="2.5" strokeDasharray="7 5" markerEnd="url(#arr-green)" />
-                  {/* CHANGED: bigger label */}
                   <rect x={c.lx - w / 2} y={c.ly - 14} width={w} height={28} rx={14} fill="#0f2a22" stroke="#34d399" />
                   <text x={c.lx} y={c.ly} textAnchor="middle" dominantBaseline="central"
                     style={{ fill: '#6fcf97', fontSize: 16, fontFamily: 'monospace' }}>{text}</text>
@@ -223,7 +252,8 @@ function ArchitectureTab({ result, loading, error }) {
 
             {Object.keys(pos).map((p) => {
               const { x, y } = pos[p]
-              const c = COLORS[arch.files[p].role]
+              const fileInfo = arch.files[p] || {}                 // CHANGED: never crash on a missing file
+              const c = COLORS[fileInfo.role] || FALLBACK_COLOR    // CHANGED: fallback colour
               const isSel = p === selected
               const dim = selected && !linked.has(p)
               return (
@@ -232,14 +262,12 @@ function ArchitectureTab({ result, loading, error }) {
                   <title>{p}</title>
                   <rect x={x} y={y} width={NODE_W} height={NODE_H} rx={9}
                     fill={c} fillOpacity={0.2} stroke={isSel ? '#ffffff' : c} strokeWidth={isSel ? 3 : 2} />
-                  {/* CHANGED: fontSize 14 */}
                   <text x={x + NODE_W / 2} y={y + NODE_H / 2} textAnchor="middle" dominantBaseline="central"
                     style={{ fill: 'var(--text-main)', fontSize: 16, fontFamily: 'monospace' }}>
                     {short(baseName(p))}
                   </text>
-                  {arch.files[p].isEntry && (
+                  {fileInfo.isEntry && (
                     <g>
-                      {/* CHANGED: bigger ENTRY badge */}
                       <rect x={x + NODE_W - 56} y={y - 11} width={56} height={20} rx={10} fill="#60a5fa" />
                       <text x={x + NODE_W - 28} y={y - 1} textAnchor="middle" dominantBaseline="central"
                         style={{ fill: '#0b1020', fontSize: 14, fontWeight: 700 }}>ENTRY</text>
@@ -265,12 +293,12 @@ function ArchitectureTab({ result, loading, error }) {
           {info && (
             <>
               <h4>{selected}</h4>
-              <div className="arch-role" style={{ color: COLORS[info.role] }}>
-                <b>{ROLE_LABEL[info.role]}</b>
+              <div className="arch-role" style={{ color: COLORS[info.role] || FALLBACK_COLOR }}>
+                <b>{ROLE_LABEL[info.role] || info.role}</b>
                 {info.isEntry && <span className="arch-badge">ENTRY</span>}
               </div>
               <p className="arch-why">Why: {info.reason}</p>
-              {info.layer !== null && <p className="arch-why">Layer {info.layer} on the {info.side} side</p>}
+              {info.layer !== null && info.layer !== undefined && <p className="arch-why">Layer {info.layer} on the {info.side} side</p>}
 
               <div className="arch-title">Uses <span>{node ? node.uses.length : 0}</span></div>
               {(!node || node.uses.length === 0) && <p className="arch-empty">Nothing from this repo.</p>}

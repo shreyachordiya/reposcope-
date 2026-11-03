@@ -15,13 +15,7 @@ function LandingScreen({ onAnalyze }) {
           <span className="option-subtitle">Repo mode + hackathon mode</span>
         </div>
 
-        <div className="option-card">
-          <svg className="option-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.6.6 1 1.4 1 2.5h6c0-1.1.4-1.9 1-2.5A6 6 0 0 0 12 3Z"/>
-          </svg>
-          <span className="option-title">Plan new project</span>
-          <span className="option-subtitle">Planning mode</span>
-        </div>
+       
       </div>
     </div>
   )

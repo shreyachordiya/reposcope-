@@ -14,7 +14,9 @@
     "@babel/parser": "^8.0.6",
     "@babel/traverse": "^8.0.6",
     "cors": "^2.8.6",
+    "dotenv": "^18.0.5",
     "express": "^5.2.1",
+    "mongoose": "^9.10.4",
     "simple-git": "^4.0.2"
   }
 }

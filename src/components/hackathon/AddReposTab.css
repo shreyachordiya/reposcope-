@@ -1,0 +1,81 @@
+.hk-add {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hk-add-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text-main);
+}
+
+.hk-add-help {
+  margin: 0;
+  font-size: 15px;
+  color: var(--text-muted);
+}
+
+.hk-add-box {
+  width: 100%;
+  min-height: 220px;
+  padding: 14px;
+  box-sizing: border-box;
+  resize: vertical;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: var(--text-main);
+  font-family: monospace;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.hk-add-box:focus {
+  outline: none;
+  border-color: rgba(124, 92, 255, 0.6);
+}
+
+.hk-add-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.hk-add-count {
+  font-size: 15px;
+  color: var(--text-muted);
+}
+
+.hk-add-bad {
+  color: #ff6b6b;
+  font-size: 15px;
+  margin: 0;
+}
+
+.hk-add-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(124, 92, 255, 0.25);
+  color: var(--accent-light);
+  font-size: 15px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.hk-add-btn:hover {
+  background: rgba(124, 92, 255, 0.4);
+}
+
+.hk-add-invalid {
+  font-family: monospace;
+  font-size: 15px;
+  color: #ff6b6b;
+}
