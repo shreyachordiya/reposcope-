@@ -7,9 +7,16 @@ const { extractClaims, addAiText, addJudgeQuestions } = require('./ai')
 // so reopening a project never clones or calls the AI again. It lives in memory: restarting the server clears it.
 const store = new Map()
 
+// "fetch failed" hides the real reason in e.cause (for example ECONNREFUSED). Show both in the log.
+function why(e) {
+  return e.message + (e.cause ? ' (' + (e.cause.code || e.cause.message) + ')' : '')
+}
+
 async function analyzeUrl(githubUrl) {
+  // This server calls its OWN /analyze route. The port must be the one the server really listens on:
+  // server.js uses process.env.PORT || 5000, so we read the same value here.
   const port = process.env.PORT || 5000
-  const r = await fetch('http://localhost:' + port + '/analyze', {
+  const r = await fetch('http://127.0.0.1:' + port + '/analyze', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ githubUrl }),
@@ -69,7 +76,7 @@ function registerHackathonRoutes(app) {
       store.set(githubUrl, out)
       res.json({ status: 'success', facts: publicView(out.facts) })
     } catch (e) {
-      console.log('[hackathon facts]', e.message)
+      console.log('[hackathon facts]', why(e))
       res.json({ status: 'error', message: 'Could not analyze this repo.' })
     }
   })
@@ -93,7 +100,7 @@ function registerHackathonRoutes(app) {
         questionsError: out.questionsError || null,
       })
     } catch (e) {
-      console.log('[hackathon scorecard]', e.message)
+      console.log('[hackathon scorecard]', why(e))
       res.json({ status: 'error', message: 'Could not analyze this repo. Is the link public?' })
     }
   })
