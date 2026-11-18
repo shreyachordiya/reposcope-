@@ -11,8 +11,6 @@ RepoScope clones a repository, analyzes it with a real code parser (AST), and sh
 
 ## Features
 
-| Tab | What you get |
-|---|---|
 | **Overview** | File tree plus facts about each file (imports, exports, functions, components, routes) |
 | **Architecture** | Diagram of frontend, backend, and how they connect |
 | **Dependencies** | Import graph, npm packages, unused packages, most-imported files |
