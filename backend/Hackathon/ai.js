@@ -38,6 +38,7 @@ const PROVIDERS = [
 ]
 
 // Judge questions have their own key and models (JUDGE_QUESTIONS_KEY, JUDGE_QUESTIONS_MODELS).
+// CHANGED: if that key fails, the providers above are tried too (more fallbacks).
 // If JUDGE_QUESTIONS_KEY is not set, the questions use the providers above instead.
 const JUDGE_PROVIDERS = process.env.JUDGE_QUESTIONS_KEY
   ? [
@@ -47,6 +48,7 @@ const JUDGE_PROVIDERS = process.env.JUDGE_QUESTIONS_KEY
         key: process.env.JUDGE_QUESTIONS_KEY,
         models: list(process.env.JUDGE_QUESTIONS_MODELS || 'openai/gpt-oss-120b,openai/gpt-oss-20b'),
       },
+      ...PROVIDERS,
     ]
   : PROVIDERS
 
@@ -55,13 +57,59 @@ const cache = new Map() // same input = same answer, no repeat call
 const str = (x, n) => String(x || '').slice(0, n)
 const squash = (s) => String(s).toLowerCase().replace(/\s+/g, ' ').trim()
 
+// NEW: if the whole JSON is broken, keep every question object that is complete on its own.
+// It walks through the text, tracks { } depth (ignoring braces inside strings) and parses each finished object.
+function salvageQuestions(t) {
+  const k = t.indexOf('"questions"')
+  if (k < 0) return null
+  const start = t.indexOf('[', k)
+  if (start < 0) return null
+  const items = []
+  let depth = 0
+  let from = -1
+  let inStr = false
+  let esc = false
+  for (let i = start + 1; i < t.length; i++) {
+    const ch = t[i]
+    if (inStr) {
+      if (esc) esc = false
+      else if (ch === '\\') esc = true
+      else if (ch === '"') inStr = false
+      continue
+    }
+    if (ch === '"') inStr = true
+    else if (ch === '{') {
+      if (depth === 0) from = i
+      depth++
+    } else if (ch === '}') {
+      depth--
+      if (depth === 0 && from >= 0) {
+        try {
+          items.push(JSON.parse(t.slice(from, i + 1)))
+        } catch (e) {
+          // this one question is broken, skip it and keep the others
+        }
+        from = -1
+      }
+    }
+  }
+  return items.length ? { questions: items } : null
+}
+
 // Models sometimes wrap JSON in text or <think> blocks. Take the first { to the last }.
+// CHANGED: if that is broken JSON, try to keep the complete questions instead of throwing everything away.
 function parseJson(text) {
   const t = String(text || '').replace(/<think>[\s\S]*?<\/think>/g, '')
   const a = t.indexOf('{')
   const b = t.lastIndexOf('}')
   if (a < 0 || b < a) throw new Error('model did not return JSON')
-  return JSON.parse(t.slice(a, b + 1))
+  try {
+    return JSON.parse(t.slice(a, b + 1))
+  } catch (e) {
+    const saved = salvageQuestions(t)
+    if (saved) return saved
+    throw e
+  }
 }
 
 async function callModel(provider, model, system, data) {
@@ -80,7 +128,10 @@ async function callModel(provider, model, system, data) {
   })
   if (!r.ok) throw new Error(provider.name + ' ' + model + ': status ' + r.status)
   const body = await r.json()
-  return parseJson(body.choices[0].message.content)
+  // CHANGED: say clearly when the model sent nothing back
+  const content = body.choices && body.choices[0] && body.choices[0].message && body.choices[0].message.content
+  if (!content) throw new Error(provider.name + ' ' + model + ': empty answer')
+  return parseJson(content)
 }
 
 // Tries every model of every provider, in order. Moves on at a rate limit, timeout or bad answer.
@@ -294,7 +345,7 @@ async function addJudgeQuestions(facts, card, readmeText, snippets) {
   const out = await askJson(
     RULES +
       ' Act as a hackathon judge who has read this project properly (use projectSummary, readme, contains, builtFeatures and codeSnippets) and now questions the team face to face.' +
-      ' Write 12 to 14 questions. Most of them must be about the PROJECT itself, not about a list of problems:' +
+      ' Write 9 to 11 questions. Most of them must be about the PROJECT itself, not about a list of problems:' + // CHANGED: was 12 to 14, shorter replies break less often
       ' (a) purpose: what problem it solves, who uses it, what is different about it (category "Idea").' +
       ' (b) how it works: how ONE real flow runs from the user action to the result, naming real routes, components, models or packages (category "How it works"). Ask about the flow. Never ask "what does route X return" or "what is component Y for".' +
       ' (c) design choices: why this stack, library or structure and not an alternative (category "Tech").' +
@@ -307,7 +358,7 @@ async function addJudgeQuestions(facts, card, readmeText, snippets) {
       ' or {"type":"weakness","value":<id>}, {"type":"feature","value":"<name from builtFeatures>"}, {"type":"route","value":"<route from contains.routes>"},' +
       ' {"type":"component","value":"<name>"}, {"type":"model","value":"<name>"}, {"type":"claim","value":"<feature label from readmeClaims>"} or {"type":"stack","value":"<project.stack>"}.' +
       ' Priority: "high" = a judge will almost certainly ask this about the core of the project, "medium" = likely, "low" = possible.' +
-      ' Answers: 2 to 4 sentences the team can adapt, using only the input. When the input does not say WHY a choice was made, give the most likely reason and start with "Likely reason:". Never claim the team planned something unless the README says so.' +
+      ' Answers: 2 to 3 sentences the team can adapt, using only the input. When the input does not say WHY a choice was made, give the most likely reason and start with "Likely reason:". Never claim the team planned something unless the README says so.' + // CHANGED: was 2 to 4 sentences
       ' Return {"questions":[{"category":"How it works or Tech or Security or Claims or Scale or Idea","priority":"high or medium or low","ref":{...},' +
       '"question":"one sentence","why":"why a judge would ask this, one sentence","answer":"the answer","followUp":"one likely follow-up question"}]}.',
     questionInput(facts, card, readmeText, snippets),

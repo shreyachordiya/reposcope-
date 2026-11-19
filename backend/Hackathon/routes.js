@@ -73,7 +73,7 @@ function registerHackathonRoutes(app) {
     if (!githubUrl) return res.json({ status: 'error', message: 'githubUrl is required' })
     try {
       const out = await analyzeUrl(githubUrl)
-      store.set(githubUrl, out)
+      if (!out.questionsError) store.set(githubUrl, out)
       res.json({ status: 'success', facts: publicView(out.facts) })
     } catch (e) {
       console.log('[hackathon facts]', why(e))
